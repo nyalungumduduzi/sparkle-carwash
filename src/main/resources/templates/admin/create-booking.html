@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Booking | Admin | Sparkle & Shine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/luxury-theme.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        
+        * { font-family: 'Poppins', sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 280px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            color: white;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .sidebar-header { padding: 30px 25px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h3 { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #FFD700, #FFA500); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .sidebar-menu { padding: 20px; }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 18px;
+            margin: 8px 0;
+            border-radius: 12px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: white; transform: translateX(5px); }
+        .menu-item.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .menu-item i { width: 30px; font-size: 18px; }
+        
+        .main-content { margin-left: 280px; padding: 25px; }
+        
+        .booking-card {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .booking-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .booking-header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 10px; }
+        .booking-header p { font-size: 0.9rem; opacity: 0.9; }
+        
+        .booking-form { padding: 30px; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label { font-weight: 600; color: #333; margin-bottom: 8px; display: block; }
+        .form-label i { margin-right: 8px; color: #667eea; }
+        .form-control, .form-select {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102,126,234,0.4); }
+        
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .time-slot {
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .time-slot:hover { background: #667eea; color: white; border-color: #667eea; }
+        .time-slot.selected { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: #667eea; }
+        
+        footer { background: #1a1a2e; color: white; padding: 20px 0; text-align: center; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header"><h3><i class="fas fa-crown"></i> Sparkle & Shine</h3><p>Admin Portal</p></div>
+        <div class="sidebar-menu">
+            <a href="/admin/dashboard" class="menu-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/admin/bookings" class="menu-item"><i class="fas fa-calendar-check"></i> All Bookings</a>
+            <a href="/admin/bookings/create" class="menu-item active"><i class="fas fa-plus-circle"></i> Create Booking</a>
+            <a href="/admin/employees" class="menu-item"><i class="fas fa-users-cog"></i> Manage Employees</a>
+            <a href="/admin/performance" class="menu-item"><i class="fas fa-chart-line"></i> Performance</a>
+            <hr><a href="/logout" class="menu-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="booking-card">
+            <div class="booking-header">
+                <h1><i class="fas fa-calendar-plus"></i> Create New Booking</h1>
+                <p>Register a customer car wash booking</p>
+            </div>
+            
+            <div class="booking-form">
+                <form method="post" action="/admin/bookings/create">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-user"></i> Customer Name *</label>
+                                <input type="text" name="customerName" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-phone"></i> Phone Number *</label>
+                                <input type="text" name="customerPhone" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-envelope"></i> Email *</label>
+                                <input type="email" name="customerEmail" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-car"></i> Vehicle Registration</label>
+                                <input type="text" name="vehicleReg" class="form-control" placeholder="ABC123MP">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-oil-can"></i> Service Package *</label>
+                                <select name="serviceType" class="form-select" required>
+                                    <option value="Basic Wash">💧 Basic Wash - R80 (20 min)</option>
+                                    <option value="Standard Wash">✨ Standard Wash - R150 (35 min)</option>
+                                    <option value="Premium Wash">🌟 Premium Wash - R250 (60 min)</option>
+                                    <option value="Full Detail">🏆 Full Detail - R450 (120 min)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-calendar"></i> Date *</label>
+                                <input type="date" name="bookingDate" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-clock"></i> Time *</label>
+                                <select name="bookingTime" class="form-select" required>
+                                    <option value="08:00">08:00</option><option value="09:00">09:00</option>
+                                    <option value="10:00">10:00</option><option value="11:00">11:00</option>
+                                    <option value="12:00">12:00</option><option value="13:00">13:00</option>
+                                    <option value="14:00">14:00</option><option value="15:00">15:00</option>
+                                    <option value="16:00">16:00</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-check-circle"></i> Create Booking →
+                    </button>
+                    <a href="/admin/bookings" class="btn btn-secondary w-100 mt-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container text-center">
+            <p>© 2026 Sparkle & Shine Car Wash | Admin Management System</p>
+        </div>
+    </footer>
+
+    <script>
+        // Set min date to today
+        document.querySelector('input[name="bookingDate"]').min = new Date().toISOString().split('T')[0];
+    </script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Dashboard | Sparkle & Shine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        
+        body.dark-mode { background: #1a1a2e; }
+        body.dark-mode .sidebar { background: #0f0f1a; }
+        body.dark-mode .top-bar, body.dark-mode .stats-card, body.dark-mode .task-card { background: #2d2d44; color: white; }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 280px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            color: #1a1a2e;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header { padding: 30px 25px; text-align: center; border-bottom: 1px solid #e0e0e0; }
+        .sidebar-header h3 { font-size: 24px; font-weight: 800; color: #667eea; }
+        
+        .menu-item {
+            display: block;
+            padding: 12px 18px;
+            margin: 8px 0;
+            border-radius: 12px;
+            color: #1a1a2e;
+            text-decoration: none;
+        }
+        
+        .menu-item:hover, .menu-item.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .menu-item i { width: 30px; }
+        
+        .main-content { margin-left: 280px; padding: 25px; }
+        
+        .top-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .employee-badge { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        
+        .stats-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            transition: transform 0.3s;
+        }
+        
+        .stats-card:hover { transform: translateY(-5px); }
+        .stats-number { font-size: 48px; font-weight: 800; color: #667eea; }
+        
+        .task-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .task-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        
+        .quick-status-btn { padding: 5px 15px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-start { background: #007bff; color: white; }
+        .btn-complete { background: #28a745; color: white; }
+        .btn-start:hover, .btn-complete:hover { transform: scale(1.05); }
+        
+        .progress-bar-custom {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill { height: 100%; background: linear-gradient(135deg, #11998e, #38ef7d); width: 0%; transition: width 0.5s; }
+        
+        .greeting { font-size: 14px; color: #666; }
+        .dark-mode-toggle { background: #2d2d44; border: none; color: white; padding: 8px 15px; border-radius: 20px; margin-right: 10px; }
+        .btn-logout { background: #dc3545; color: white; padding: 8px 20px; border-radius: 10px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-user-hard-hat"></i> Sparkle & Shine</h3>
+            <p>Employee Portal</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/employee/dashboard" class="menu-item active"><i class="fas fa-tachometer-alt"></i> My Dashboard</a>
+            <a href="/employee/tasks" class="menu-item"><i class="fas fa-clipboard-list"></i> My Tasks</a>
+            <hr><a href="/logout" class="menu-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="top-bar">
+            <div>
+                <h4><i class="fas fa-smile"></i> Hello, <span th:text="${#authentication.name}"></span>!</h4>
+                <p class="greeting" id="greetingMessage"></p>
+            </div>
+            <div>
+                <button class="dark-mode-toggle" onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Dark</button>
+                <span class="employee-badge"><i class="fas fa-user-check"></i> EMPLOYEE</span>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-tasks fa-2x" style="color: #11998e;"></i>
+                    <div class="stats-number" th:text="${assignedTasksCount != null ? assignedTasksCount : 0}">0</div>
+                    <div>Tasks Assigned to You</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-spinner fa-2x" style="color: #ffc107;"></i>
+                    <div class="stats-number" th:text="${inProgressTasksCount != null ? inProgressTasksCount : 0}">0</div>
+                    <div>In Progress</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-check-circle fa-2x" style="color: #28a745;"></i>
+                    <div class="stats-number" th:text="${completedTasksCount != null ? completedTasksCount : 0}">0</div>
+                    <div>Tasks Completed</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Progress -->
+        <div class="task-card">
+            <h5><i class="fas fa-chart-line"></i> Your Progress</h5>
+            <div class="progress-bar-custom">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <p class="mt-2" id="progressText"></p>
+        </div>
+                <!-- Employee Performance Charts -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="task-card">
+                    <h5><i class="fas fa-chart-line"></i> Your Weekly Performance</h5>
+                    <canvas id="performanceChart" height="180"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="task-card">
+                    <h5><i class="fas fa-chart-pie"></i> Task Breakdown</h5>
+                    <canvas id="taskBreakdownChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Today's Schedule -->
+        <div class="task-card">
+            <h5><i class="fas fa-calendar-day"></i> Today's Schedule</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr><th>Time</th><th>Customer</th><th>Service</th><th>Vehicle</th><th>Status</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${todayTasks != null and todayTasks.size() > 0}" th:each="task : ${todayTasks}">
+                            <td><strong th:text="${task.bookingTime != null ? task.bookingTime : 'N/A'}">-</strong></td>
+                            <td th:text="${task.customerName != null ? task.customerName : 'N/A'}">-</td>
+                            <td><span class="badge bg-info" th:text="${task.serviceType != null ? task.serviceType : 'N/A'}">-</span></td>
+                            <td th:text="${task.vehicleRegistration != null ? task.vehicleRegistration : 'N/A'}">-</td>
+                            <td>
+                                <span class="badge" th:class="${task.status == 'IN_PROGRESS'} ? 'bg-primary' : 'bg-warning'" th:text="${task.status != null ? task.status : 'PENDING'}">-</span>
+                            </td>
+                            <td>
+                                <form method="post" th:action="@{/employee/update-status/{id}(id=${task.bookingId})}" style="display:inline">
+                                    <input type="hidden" name="status" value="IN_PROGRESS">
+                                    <button class="quick-status-btn btn-start" th:disabled="${task.status != 'ASSIGNED'}">
+                                        <i class="fas fa-play"></i> Start
+                                    </button>
+                                </form>
+                                <form method="post" th:action="@{/employee/update-status/{id}(id=${task.bookingId})}" style="display:inline">
+                                    <input type="hidden" name="status" value="COMPLETED">
+                                    <button class="quick-status-btn btn-complete" th:disabled="${task.status != 'IN_PROGRESS'}">
+                                        <i class="fas fa-check"></i> Done
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${todayTasks == null or todayTasks.size() == 0}">
+                            <td colspan="6" style="text-align: center;">🎉 No tasks scheduled for today. Enjoy your day!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Motivation Message -->
+        <div class="alert alert-success text-center" style="border-radius: 15px;" id="motivationMessage">
+            <i class="fas fa-star"></i> Great job! Keep up the excellent work ethic. <i class="fas fa-star"></i>
+        </div>
+    </div>
+    
+    <script>
+        function updateProgress() {
+            let assigned = parseInt(document.querySelector('.stats-number:first-child')?.innerText) || 0;
+            let completed = parseInt(document.querySelectorAll('.stats-number')[2]?.innerText) || 0;
+            let percent = assigned > 0 ? (completed / assigned) * 100 : 0;
+            let progressFill = document.getElementById('progressFill');
+            if (progressFill) progressFill.style.width = percent + '%';
+            let progressText = document.getElementById('progressText');
+            if (progressText) progressText.innerHTML = `You have completed ${percent.toFixed(0)}% of your assigned tasks. Keep going!`;
+            
+            if (completed === assigned && assigned > 0) {
+                let motivationMsg = document.getElementById('motivationMessage');
+                if (motivationMsg) {
+                    motivationMsg.innerHTML = '🎉 AMAZING! You completed all your tasks! Take a break or help a colleague! 🎉';
+                    motivationMsg.className = 'alert alert-success text-center';
+                }
+            }
+        }
+        
+        function setGreeting() {
+            let hour = new Date().getHours();
+            let greeting = hour < 12 ? 'Good morning! ☀️' : hour < 18 ? 'Good afternoon! 🌤️' : 'Good evening! 🌙';
+            let greetingElem = document.getElementById('greetingMessage');
+            if (greetingElem) greetingElem.innerText = greeting + ' Ready to make some cars sparkle today?';
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        
+        setGreeting();
+        updateProgress();
+        
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+        
+        // Auto-refresh every 30 seconds
+        setTimeout(() => location.reload(), 30000);
+    // Employee Performance Charts
+    function initEmployeeCharts() {
+        // Performance Chart
+        const perfCtx = document.getElementById('performanceChart')?.getContext('2d');
+        if (perfCtx) {
+            new Chart(perfCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Cars Washed',
+                        data: [3, 5, 4, 6, 8, 7, 2],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40,167,69,0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        // Task Breakdown Chart
+        const breakdownCtx = document.getElementById('taskBreakdownChart')?.getContext('2d');
+        if (breakdownCtx) {
+            let assigned = parseInt(document.querySelector('.stats-number:first-child')?.innerText) || 0;
+            let completed = parseInt(document.querySelectorAll('.stats-number')[2]?.innerText) || 0;
+            let inProgress = parseInt(document.querySelectorAll('.stats-number')[1]?.innerText) || 0;
+            
+            new Chart(breakdownCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'In Progress', 'Not Started'],
+                    datasets: [{
+                        data: [completed, inProgress, assigned - completed - inProgress],
+                        backgroundColor: ['#28a745', '#ffc107', '#6c757d'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+    }
+
+    // Call on load
+    document.addEventListener('DOMContentLoaded', initEmployeeCharts);
+</script>
+</body>
+</html>

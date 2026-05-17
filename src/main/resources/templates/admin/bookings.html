@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>All Bookings | Sparkle & Shine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/luxury-theme.css" rel="stylesheet">
+    <style>
+        /* Additional specific styles for bookings page */
+        .filter-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        body.dark-mode .filter-bar {
+            background: #2d2d44;
+        }
+        
+        .table-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        body.dark-mode .table-card {
+            background: #2d2d44;
+        }
+        
+        .btn-add {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+            color: white;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-PENDING { background: #fff3cd; color: #856404; }
+        .status-ASSIGNED { background: #d1ecf1; color: #0c5460; }
+        .status-IN_PROGRESS { background: #cce5ff; color: #004085; }
+        .status-COMPLETED { background: #d4edda; color: #155724; }
+        
+        .btn-assign {
+            background: #ffc107;
+            color: #1a1a2e;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-assign:hover {
+            transform: scale(1.05);
+            background: #ffca2c;
+        }
+        
+        .table th {
+            font-weight: 600;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+        }
+        
+        body.dark-mode .table th {
+            background: linear-gradient(135deg, #2d2d44, #1a1a2e);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-car-wash"></i> Sparkle & Shine</h3>
+            <p>Administrator Portal</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/admin/dashboard" class="menu-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/admin/bookings" class="menu-item active"><i class="fas fa-calendar-check"></i> All Bookings</a>
+            <a href="/admin/bookings/create" class="menu-item"><i class="fas fa-plus-circle"></i> Create Booking</a>
+            <a href="/admin/employees" class="menu-item"><i class="fas fa-users"></i> Employees</a>
+            <a href="/admin/performance" class="menu-item"><i class="fas fa-chart-line"></i> Performance</a>
+            <hr>
+            <a href="/logout" class="menu-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div>
+                <h4><i class="fas fa-calendar-check"></i> All Bookings</h4>
+                <p class="text-muted mb-0">Manage and assign customer bookings</p>
+            </div>
+            <div>
+                <button class="dark-mode-toggle" onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Dark Mode</button>
+                <a href="/logout" class="btn-logout ms-2">Logout</a>
+            </div>
+        </div>
+        
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="row align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-search"></i> Search</label>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Customer name or phone...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><i class="fas fa-filter"></i> Status</label>
+                    <select id="statusFilter" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="PENDING">⏳ Pending</option>
+                        <option value="ASSIGNED">👤 Assigned</option>
+                        <option value="IN_PROGRESS">🔧 In Progress</option>
+                        <option value="COMPLETED">✅ Completed</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><i class="fas fa-calendar"></i> Date</label>
+                    <input type="date" id="dateFilter" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <button onclick="clearFilters()" class="btn btn-secondary w-100">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bookings Table -->
+        <div class="table-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Booking Records</h5>
+                <a href="/admin/bookings/create" class="btn-add">
+                    <i class="fas fa-plus-circle"></i> New Booking
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Vehicle</th>
+                            <th>Service</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Employee</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTableBody">
+                        <tr th:each="b : ${bookings}">
+                            <td><strong>#<span th:text="${b.bookingId}"></span></strong></td>
+                            <td><span th:text="${b.customerName}"></span></td>
+                            <td><span th:text="${b.customerPhone}"></span></td>
+                            <td><span th:text="${b.vehicleRegistration != null ? b.vehicleRegistration : 'N/A'}"></span></td>
+                            <td><span class="badge bg-info" th:text="${b.serviceType}"></span></td>
+                            <td><span th:text="${b.bookingDate}"></span></td>
+                            <td><span class="status-badge" th:class="'status-' + ${b.status}" th:text="${b.status}"></span></td>
+                            <td><span th:text="${b.assignedEmployee != null ? b.assignedEmployee.firstName + ' ' + b.assignedEmployee.lastName : 'Not Assigned'}"></span></td>
+                            <td>
+                                <a th:if="${b.status == 'PENDING'}" th:href="@{/admin/assign/{id}(id=${b.bookingId})}" class="btn-assign">
+                                    <i class="fas fa-user-check"></i> Assign
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${bookings.isEmpty()}">
+                            <td colspan="9" class="text-center py-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
+                                <p>No bookings yet. <a href="/admin/bookings/create">Create your first booking</a></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Filter functions
+        function filterTable() {
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let statusFilter = document.getElementById('statusFilter').value;
+            let dateFilter = document.getElementById('dateFilter').value;
+            let rows = document.querySelectorAll('#bookingsTableBody tr');
+            
+            rows.forEach(row => {
+                if (row.cells) {
+                    let text = row.innerText.toLowerCase();
+                    let statusCell = row.cells[6]?.innerText;
+                    let dateCell = row.cells[5]?.innerText;
+                    
+                    let matchesSearch = text.includes(searchTerm);
+                    let matchesStatus = !statusFilter || statusCell === statusFilter;
+                    let matchesDate = !dateFilter || dateCell === dateFilter;
+                    
+                    row.style.display = (matchesSearch && matchesStatus && matchesDate) ? '' : 'none';
+                }
+            });
+        }
+        
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            filterTable();
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('keyup', filterTable);
+        document.getElementById('statusFilter').addEventListener('change', filterTable);
+        document.getElementById('dateFilter').addEventListener('change', filterTable);
+        
+        // Check saved dark mode
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Tasks | Sparkle & Shine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="/css/luxury-theme.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        
+        body.dark-mode { background: #1a1a2e; }
+        body.dark-mode .sidebar { background: #0f0f1a; }
+        body.dark-mode .top-bar, body.dark-mode .stats-card, body.dark-mode .task-card { background: #2d2d44; color: white; }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 280px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            color: #1a1a2e;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-mode .sidebar {
+            background: #0f0f1a;
+            color: white;
+        }
+        
+        .sidebar-header { padding: 30px 25px; text-align: center; border-bottom: 1px solid #e0e0e0; }
+        body.dark-mode .sidebar-header { border-bottom-color: #333; }
+        .sidebar-header h3 { font-size: 24px; font-weight: 800; color: #667eea; }
+        
+        .menu-item {
+            display: block;
+            padding: 12px 18px;
+            margin: 8px 0;
+            border-radius: 12px;
+            color: #1a1a2e;
+            text-decoration: none;
+        }
+        
+        body.dark-mode .menu-item { color: rgba(255,255,255,0.8); }
+        
+        .menu-item:hover, .menu-item.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .menu-item i { width: 30px; }
+        
+        .main-content { margin-left: 280px; padding: 25px; }
+        
+        .top-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        body.dark-mode .top-bar { background: #2d2d44; }
+        
+        .employee-badge { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        
+        .stats-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            transition: transform 0.3s;
+        }
+        
+        body.dark-mode .stats-card { background: #2d2d44; }
+        
+        .stats-card:hover { transform: translateY(-5px); }
+        .stats-number { font-size: 48px; font-weight: 800; color: #667eea; }
+        
+        .task-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        body.dark-mode .task-card { background: #2d2d44; }
+        
+        .task-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        
+        .quick-status-btn { padding: 5px 15px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-start { background: #007bff; color: white; }
+        .btn-complete { background: #28a745; color: white; }
+        .btn-start:hover, .btn-complete:hover { transform: scale(1.05); }
+        
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-PENDING { background: #ffc107; color: #856404; }
+        .status-ASSIGNED { background: #17a2b8; color: white; }
+        .status-IN_PROGRESS { background: #007bff; color: white; }
+        .status-COMPLETED { background: #28a745; color: white; }
+        
+        .greeting { font-size: 14px; color: #666; }
+        .dark-mode-toggle { background: #2d2d44; border: none; color: white; padding: 8px 15px; border-radius: 20px; margin-right: 10px; }
+        .btn-logout { background: #dc3545; color: white; padding: 8px 20px; border-radius: 10px; text-decoration: none; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-state i { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-user-hard-hat"></i> Sparkle & Shine</h3>
+            <p><b>Employee Portal</b></p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/employee/dashboard" class="menu-item"><i class="fas fa-tachometer-alt"></i> My Dashboard</a>
+            <a href="/employee/tasks" class="menu-item active"><i class="fas fa-clipboard-list"></i> My Tasks</a>
+            <hr><a href="/logout" class="menu-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div>
+                <h4><i class="fas fa-clipboard-list"></i> My Assigned Tasks</h4>
+                <p class="greeting" id="greetingMessage"></p>
+            </div>
+            <div>
+                <button class="dark-mode-toggle" onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Dark</button>
+                <span class="employee-badge"><i class="fas fa-user-check"></i> EMPLOYEE</span>
+            </div>
+        </div>
+        
+        <!-- Stats Cards - Same as Dashboard -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-tasks fa-2x" style="color: #11998e;"></i>
+                    <div class="stats-number" th:text="${tasks != null ? tasks.size() : 0}">0</div>
+                    <div>Total Tasks</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-spinner fa-2x" style="color: #ffc107;"></i>
+                    <div class="stats-number" id="inProgressCount">0</div>
+                    <div>In Progress</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-check-circle fa-2x" style="color: #28a745;"></i>
+                    <div class="stats-number" id="completedCount">0</div>
+                    <div>Completed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Table -->
+        <div class="task-card">
+            <h5><i class="fas fa-list"></i> Your Task List</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Service</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="task : ${tasks}">
+                            <td><strong>#<span th:text="${task.bookingId}"></span></strong></td>
+                            <td>
+                                <strong th:text="${task.customerName}"></strong><br>
+                                <small class="text-muted" th:text="${task.customerPhone}"></small>
+                            </td>
+                            <td><span class="badge bg-info" th:text="${task.serviceType}"></span></td>
+                            <td th:text="${task.bookingDate}">-</td>
+                            <td th:text="${task.bookingTime}">-</td>
+                            <td><span class="status-badge" th:class="'status-' + ${task.status}" th:text="${task.status}">-</span></td>
+                            <td>
+                                <form method="post" th:action="@{/employee/update-status/{id}(id=${task.bookingId})}" style="display:inline-block" class="me-1">
+                                    <input type="hidden" name="status" value="IN_PROGRESS">
+                                    <button class="quick-status-btn btn-start" th:disabled="${task.status != 'ASSIGNED'}">
+                                        <i class="fas fa-play"></i> Start
+                                    </button>
+                                </form>
+                                <form method="post" th:action="@{/employee/update-status/{id}(id=${task.bookingId})}" style="display:inline-block">
+                                    <input type="hidden" name="status" value="COMPLETED">
+                                    <button class="quick-status-btn btn-complete" th:disabled="${task.status != 'IN_PROGRESS'}">
+                                        <i class="fas fa-check"></i> Done
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${tasks == null or tasks.size() == 0}">
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-check-circle fa-3x text-success"></i>
+                                <p class="mt-2">No tasks assigned to you yet!</p>
+                                <small class="text-muted">Ask your admin to assign you some bookings</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Motivation Message - Same as Dashboard -->
+        <div class="alert alert-success text-center" style="border-radius: 15px;" id="motivationMessage">
+            <i class="fas fa-star"></i> Update task status as you work to earn performance bonuses! <i class="fas fa-star"></i>
+        </div>
+    </div>
+    
+    <script>
+        function setGreeting() {
+            let hour = new Date().getHours();
+            let greeting = hour < 12 ? 'Good morning! ☀️' : hour < 18 ? 'Good afternoon! 🌤️' : 'Good evening! 🌙';
+            let greetingElem = document.getElementById('greetingMessage');
+            if (greetingElem) greetingElem.innerText = greeting + ' Here are your assigned tasks';
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        
+        // Calculate task statistics
+        function updateTaskStats() {
+            let tasks = /*[[${tasks}]]*/ [];
+            let inProgress = 0, completed = 0;
+            
+            if (tasks && tasks.length > 0) {
+                tasks.forEach(task => {
+                    if (task.status === 'IN_PROGRESS') inProgress++;
+                    else if (task.status === 'COMPLETED') completed++;
+                });
+            }
+            
+            let inProgressElem = document.getElementById('inProgressCount');
+            let completedElem = document.getElementById('completedCount');
+            if (inProgressElem) inProgressElem.innerText = inProgress;
+            if (completedElem) completedElem.innerText = completed;
+        }
+        
+        setGreeting();
+        updateTaskStats();
+        
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+</html>
