@@ -8,11 +8,6 @@
 ## 📋 Project Overview
 
 A comprehensive **web-based car wash management system** developed for Sparkle & Shine Car Wash in Witbank, Mpumalanga. This system digitizes daily operations, replacing manual paper-based booking systems with a modern, efficient digital solution.
-
-**Course:** INT316D - Web Development  
-**Semester:** Semester 1 - 2026  
-**Presentation Date:** 6 & 7 May 2026
-
 ---
 
 ## 🚀 Features
